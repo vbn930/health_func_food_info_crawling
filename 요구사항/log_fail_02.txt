@@ -1,0 +1,34 @@
+[2024-05-07 16:06:45][INFO]크롤링 대상 웹사이트 1개를 발견하였습니다.
+[2024-05-07 16:06:57][INFO]기간 설정을 위해 시작과 종료 날짜를 입력해주세요.
+[2024-05-07 16:06:57][INFO]반드시 YYYY-MM-DD의 양식으로 입력 해주세요.
+[2024-05-07 16:07:29][INFO]2024-01-01~2024-04-30로 기간 설정을 완료하였습니다.
+[2024-05-07 16:07:29][INFO]URL 주소 https://www.foodsafetykorea.go.kr/portal/healthyfoodlife/searchHomeHF.do?menu_grp=MENU_NEW01&menu_no=2823의 크롤링을 시작하였습니다.
+[2024-05-07 16:07:36][ERROR]다음과 같은 오류로 프로그램을 종료합니다. 프로그램을 재실행 해주세요.: Message: element click intercepted: Element <a href="#" id="show_cnt-btn" class="btn btn-default" role="button">...</a> is not clickable at point (714, 292). Other element would receive the click: <div class="overlay" style="position: absolute; width: 779px; height: 1363px; background: black; z-index: 5000; opacity: 0.5;"></div>
+  (Session info: chrome-headless-shell=124.0.6367.119)
+Stacktrace:
+	GetHandleVerifier [0x00007FF6B5631502+60802]
+	(No symbol) [0x00007FF6B55AAC02]
+	(No symbol) [0x00007FF6B5467CE4]
+	(No symbol) [0x00007FF6B54BE877]
+	(No symbol) [0x00007FF6B54BC344]2024-01-01
+	(No symbol) [0x00007FF6B54B980A]
+	(No symbol) [0x00007FF6B54B89E2]
+	(No symbol) [0x00007FF6B54AAE8B]
+	(No symbol) [0x00007FF6B54DAB7A]
+	(No symbol) [0x00007FF6B54AA7C6]
+	(No symbol) [0x00007FF6B54DAD90]
+	(No symbol) [0x00007FF6B54FA224]
+	(No symbol) [0x00007FF6B54DA923]
+	(No symbol) [0x00007FF6B54A8FEC]
+	(No symbol) [0x00007FF6B54A9C21]
+	GetHandleVerifier [0x00007FF6B593411D+3217821]
+	GetHandleVerifier [0x00007FF6B59760B7+3488055]
+	GetHandleVerifier [0x00007FF6B596F03F+3459263]
+	GetHandleVerifier [0x00007FF6B56EB846+823494]
+	(No symbol) [0x00007FF6B55B5F9F]
+	(No symbol) [0x00007FF6B55B0EC4]
+	(No symbol) [0x00007FF6B55B1052]
+	(No symbol) [0x00007FF6B55A18A4]
+	BaseThreadInitThunk [0x00007FFF45F3257D+29]
+	RtlUserThreadStart [0x00007FFF4670AA48+40]
+

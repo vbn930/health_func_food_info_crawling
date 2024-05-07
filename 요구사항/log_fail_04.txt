@@ -1,0 +1,46 @@
+[2024-05-07 16:33:56][INFO]크롤링 대상 웹사이트 1개를 발견하였습니다.
+[2024-05-07 16:34:02][INFO]기간 설정을 위해 시작과 종료 날짜를 입력해주세요.
+[2024-05-07 16:34:02][INFO]반드시 YYYY-MM-DD의 양식으로 입력 해주세요.
+[2024-05-07 16:34:11][INFO]2024-01-01~2024-02-29로 기간 설정을 완료하였습니다.
+[2024-05-07 16:34:11][INFO]URL 주소 https://www.foodsafetykorea.go.kr/portal/healthyfoodlife/searchHomeHF.do?menu_grp=MENU_NEW01&menu_no=2823의 크롤링을 시작하였습니다.
+[2024-05-07 16:37:16][INFO]루키두스 락토 프리미엄 유산균 LUCIDUS LACTO PREMIUM (2024-02-29) 정보 수집 완료!
+[2024-05-07 16:37:19][INFO]광동 6년근 홍삼정 로얄 (2024-02-29) 정보 수집 완료!
+[2024-05-07 16:37:23][INFO]나의 철분, 마이론씨 츄어블 (2024-02-29) 정보 수집 완료!
+[2024-05-07 16:37:26][INFO]유기농엽산800 (2024-02-29) 정보 수집 완료!
+[2024-05-07 16:37:30][INFO]홍삼메시마마일드 (2024-02-29) 정보 수집 완료!
+[2024-05-07 16:37:33][INFO]베어헬스 바나바잎추출물 (2024-02-29) 정보 수집 완료!
+[2024-05-07 16:37:37][INFO]베어헬스 리포좀 비타민C 1000 (2024-02-29) 정보 수집 완료!
+[2024-05-07 16:37:41][INFO]백삼농축액10 (2024-02-29) 정보 수집 완료!
+[2024-05-07 16:37:44][INFO]바디이룸 (2024-02-29) 정보 수집 완료!
+[2024-05-07 16:37:47][INFO]메리트C 메리트C&D 듀얼 메가 (2024-02-29) 정보 수집 완료!
+[2024-05-07 16:37:51][INFO]마이핏 V 멀티비타민 미네랄 올인원 (2024-02-29) 정보 수집 완료!
+[2024-05-07 16:37:55][ERROR]다음과 같은 오류로 프로그램을 종료합니다. 프로그램을 재실행 해주세요.: Message: stale element reference: stale element not found in the current frame
+  (Session info: chrome-headless-shell=124.0.6367.119); For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#stale-element-reference-exception
+Stacktrace:
+	GetHandleVerifier [0x00007FF6B5631502+60802]
+	(No symbol) [0x00007FF6B55AAC02]
+	(No symbol) [0x00007FF6B5467CE4]
+	(No symbol) [0x00007FF6B546DE26]
+	(No symbol) [0x00007FF6B54701DB]
+	(No symbol) [0x00007FF6B5470280]
+	(No symbol) [0x00007FF6B54B6A11]
+	(No symbol) [0x00007FF6B54B6E1C]
+	(No symbol) [0x00007FF6B54AA8FC]
+	(No symbol) [0x00007FF6B54DABBF]
+	(No symbol) [0x00007FF6B54AA7C6]
+	(No symbol) [0x00007FF6B54DAD90]
+	(No symbol) [0x00007FF6B54FA224]
+	(No symbol) [0x00007FF6B54DA923]
+	(No symbol) [0x00007FF6B54A8FEC]
+	(No symbol) [0x00007FF6B54A9C21]
+	GetHandleVerifier [0x00007FF6B593411D+3217821]
+	GetHandleVerifier [0x00007FF6B59760B7+3488055]
+	GetHandleVerifier [0x00007FF6B596F03F+3459263]
+	GetHandleVerifier [0x00007FF6B56EB846+823494]
+	(No symbol) [0x00007FF6B55B5F9F]
+	(No symbol) [0x00007FF6B55B0EC4]
+	(No symbol) [0x00007FF6B55B1052]
+	(No symbol) [0x00007FF6B55A18A4]
+	BaseThreadInitThunk [0x00007FFF45F3257D+29]
+	RtlUserThreadStart [0x00007FFF4670AA48+40]
+
