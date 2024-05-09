@@ -123,69 +123,63 @@ def find_item_by_id(logger: log_manager.Logger, driver: WebDriver, url, item_id)
 
 def get_item_info(logger: log_manager.Logger, driver: WebDriver, url, start_date):
     
-    datas = list()
-    
     is_found_start_date = False
     
-    while(not is_found_start_date):
-        data = []
-        
-        article_element = driver.find_element(By.TAG_NAME, "article")
-        
-        #건강 기능 식품 정보 테이블
-        table_rows = article_element.find_element(By.TAG_NAME, "table").find_element(By.TAG_NAME, "tbody").find_elements(By.TAG_NAME, "tr")
-        for row in table_rows:
-            text = row.find_element(By.TAG_NAME, "td").text
-            data.append(text)
-        
-        #기능성 원재료 정보
-        first_div_rows = article_element.find_elements(By.TAG_NAME, "div")[0].find_element(By.TAG_NAME, "table").find_element(By.TAG_NAME, "tbody").find_elements(By.TAG_NAME, "tr")
-        
-        text = ""
-        for row in first_div_rows:
-            tds = row.find_elements(By.TAG_NAME, 'td')
-            if len(tds) > 1:
-                if row != first_div_rows[-1]:
-                    text += f"{tds[1].text};"
-                else:
-                    text += f"{tds[1].text}"
+    data = []
+    
+    article_element = driver.find_element(By.TAG_NAME, "article")
+    
+    #건강 기능 식품 정보 테이블
+    table_rows = article_element.find_element(By.TAG_NAME, "table").find_element(By.TAG_NAME, "tbody").find_elements(By.TAG_NAME, "tr")
+    for row in table_rows:
+        text = row.find_element(By.TAG_NAME, "td").text
         data.append(text)
-        #기타 원재료 정보
-        second_div_rows = article_element.find_elements(By.TAG_NAME, "div")[1].find_element(By.TAG_NAME, "table").find_element(By.TAG_NAME, "tbody").find_elements(By.TAG_NAME, "tr")
-        text = ""
-        for row in second_div_rows:
-            tds = row.find_elements(By.TAG_NAME, 'td')
-            if len(tds) > 1:
-                if row != second_div_rows[-1]:
-                    text += f"{tds[1].text};"
-                else:
-                    text += f"{tds[1].text}"
-        data.append(text)
+    
+    #기능성 원재료 정보
+    first_div_rows = article_element.find_elements(By.TAG_NAME, "div")[0].find_element(By.TAG_NAME, "table").find_element(By.TAG_NAME, "tbody").find_elements(By.TAG_NAME, "tr")
+    
+    text = ""
+    for row in first_div_rows:
+        tds = row.find_elements(By.TAG_NAME, 'td')
+        if len(tds) > 1:
+            if row != first_div_rows[-1]:
+                text += f"{tds[1].text};"
+            else:
+                text += f"{tds[1].text}"
+    data.append(text)
+    #기타 원재료 정보
+    second_div_rows = article_element.find_elements(By.TAG_NAME, "div")[1].find_element(By.TAG_NAME, "table").find_element(By.TAG_NAME, "tbody").find_elements(By.TAG_NAME, "tr")
+    text = ""
+    for row in second_div_rows:
+        tds = row.find_elements(By.TAG_NAME, 'td')
+        if len(tds) > 1:
+            if row != second_div_rows[-1]:
+                text += f"{tds[1].text};"
+            else:
+                text += f"{tds[1].text}"
+    data.append(text)
+    
+    if start_date > time.strptime(data[3], "%Y-%m-%d"):
+        is_found_start_date = True
+    
+    if not is_found_start_date:
+        logger.log_info(f"{data[1]} ({data[3]}) 정보 수집 완료!")
+        driver.find_element(By.CLASS_NAME, "prev-btn-wrap").find_elements(By.TAG_NAME, "a")[1].click()
+        time.sleep(5)
         
-        if start_date > time.strptime(data[3], "%Y-%m-%d"):
-            is_found_start_date = True
-        
-        if not is_found_start_date:
-            datas.append(data)
-            logger.log_info(f"{data[1]} ({data[3]}) 정보 수집 완료!")
+        try:
+            alert = driver.switch_to.alert
+            alert.accept()
+            
+            logger.log_debug("알림창을 감지 하였습니다.")
+            
+            find_item_by_id(logger=logger, driver=driver, url=url, item_id=data[2])
             driver.find_element(By.CLASS_NAME, "prev-btn-wrap").find_elements(By.TAG_NAME, "a")[1].click()
-            time.sleep(5)
-            
-            try:
-                alert = driver.switch_to.alert
-                alert.accept()
+        
+        except NoAlertPresentException:
+            pass
                 
-                logger.log_debug("알림창을 감지 하였습니다.")
-                
-                find_item_by_id(logger=logger, driver=driver, url=url, item_id=data[2])
-                driver.find_element(By.CLASS_NAME, "prev-btn-wrap").find_elements(By.TAG_NAME, "a")[1].click()
-            
-            except NoAlertPresentException:
-                pass
-            except Exception as e:
-                logger.log_error(e)
-                
-    return datas
+    return data, is_found_start_date, data[2]
 
 def save_datas_to_excel_file(logger: log_manager.Logger, datas: list, output_name, start_date, end_date):
     
@@ -263,10 +257,26 @@ if __name__ == '__main__':
             end_date_time = time.strptime(end_date, "%Y-%m-%d")
         
             find_items(logger, driver, webpage_urls[i], end_date_time)
+
+            datas = []
             
-            datas = get_item_info(logger, driver, webpage_urls[i], start_date_time)
+            is_found_startdate = False
+            id = ""
+            while(not is_found_startdate):
+                try:
+                    data, is_found_startdate, id = get_item_info(logger, driver, webpage_urls[i], start_date_time)
+                except Exception as e:
+                    logger.log_error(f"다음과 같은 오류가 발생하여 상품을 재검색 합니다. : {e}")
+                    if id == "":
+                        find_items(logger, driver, webpage_urls[i], end_date_time)
+                    else:
+                        find_item_by_id(logger, driver, webpage_urls[i], id)
+                        datas.remove(datas[-1])
+
+                if not is_found_startdate:
+                    datas.append(data)
+                    save_datas_to_excel_file(logger, datas, file_name, start_date, end_date)
             
-            save_datas_to_excel_file(logger, datas, file_name, start_date, end_date)
     except Exception as e:
         logger.log_error(f"다음과 같은 오류로 프로그램을 종료합니다. 프로그램을 재실행 해주세요.: {e}")
     finally:
