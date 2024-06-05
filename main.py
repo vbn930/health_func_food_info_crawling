@@ -16,8 +16,9 @@ import pandas as pd
 from openpyxl import load_workbook
 import os
 import sys
+import re
 
-# pyinstaller -n "식품안전나라_크롤링_프로그램_ver1.2" --clean --onefile main.py
+# pyinstaller -n "식품안전나라_크롤링_프로그램_ver1.4" --clean --onefile main.py
 
 def get_urls_from_cvs(path):
     webpage_names = []
@@ -31,8 +32,6 @@ def get_urls_from_cvs(path):
     return webpage_names, webpage_urls
     
 def get_chrome_driver(logger: log_manager.Logger):
-    # Chrome driver Manager를 통해 크롬 드라이버 자동 설치 > 최신 버전을 설치 > Service에 저장
-    service = Service(excutable_path=ChromeDriverManager().install())
     chrome_options = Options()
     user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
     chrome_options.add_argument('user-agent=' + user_agent)
@@ -44,7 +43,7 @@ def get_chrome_driver(logger: log_manager.Logger):
     chrome_options.add_argument('--log-level=3') # 브라우저 로그 레벨을 낮춤
     chrome_options.add_argument('--disable-loging') # 로그를 남기지 않음
     # chrome_options.add_argument("headless")
-    driver = webdriver.Chrome(options=chrome_options, service=service)
+    driver = webdriver.Chrome(options=chrome_options)
     return driver
 
 def find_items(logger: log_manager.Logger, driver: WebDriver, url, end_date):
@@ -53,7 +52,7 @@ def find_items(logger: log_manager.Logger, driver: WebDriver, url, end_date):
     
     driver.implicitly_wait(10)
     driver.get(url)
-    
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, 'show_cnt')))
     time.sleep(5)
     
     #한 페이지에 표시되는 제품을 50개로 설정
@@ -71,7 +70,7 @@ def find_items(logger: log_manager.Logger, driver: WebDriver, url, end_date):
     while(not is_found_end_date):
         
         logger.log_info("이 페이지에서 제품 크롤링 시작 지점을 찾는 중입니다.")
-        
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, "mobile_table")))
         table_contents = driver.find_element(By.CLASS_NAME, "mobile_table").find_element(By.TAG_NAME, "tbody").find_elements(By.TAG_NAME, "tr")
         for table_content in table_contents:
             upload_date = table_content.find_elements(By.TAG_NAME, "td")[4].find_element(By.CLASS_NAME, "table_txt").text
@@ -92,7 +91,7 @@ def find_item_by_id(logger: log_manager.Logger, driver: WebDriver, url, item_id)
     driver.get(url)
     
     time.sleep(5)
-    
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, 'show_cnt')))
     #한 페이지에 표시되는 제품을 50개로 설정
     show_cnt = Select(driver.find_element(By.ID, 'show_cnt'))
     show_cnt.select_by_value("50")
@@ -104,7 +103,7 @@ def find_item_by_id(logger: log_manager.Logger, driver: WebDriver, url, item_id)
     time.sleep(5)
     
     while(True):
-        
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, "mobile_table")))
         table_contents = driver.find_element(By.CLASS_NAME, "mobile_table").find_element(By.TAG_NAME, "tbody").find_elements(By.TAG_NAME, "tr")
         for table_content in table_contents:
             id = table_content.find_elements(By.TAG_NAME, "td")[3].find_element(By.CLASS_NAME, "table_txt").text
@@ -127,7 +126,7 @@ def get_item_info(logger: log_manager.Logger, driver: WebDriver, url, start_date
     
     data = []
     
-    article_element = driver.find_element(By.TAG_NAME, "article")
+    article_element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, "article")))
     
     #건강 기능 식품 정보 테이블
     table_rows = article_element.find_element(By.TAG_NAME, "table").find_element(By.TAG_NAME, "tbody").find_elements(By.TAG_NAME, "tr")
@@ -163,7 +162,7 @@ def get_item_info(logger: log_manager.Logger, driver: WebDriver, url, start_date
         is_found_start_date = True
     
     if not is_found_start_date:
-        logger.log_info(f"{data[1]} ({data[3]}) 정보 수집 완료!")
+        logger.log_info(f"신고 번호 : {data[2]}, {data[1]} ({data[3]}) 정보 수집 완료!")
         driver.find_element(By.CLASS_NAME, "prev-btn-wrap").find_elements(By.TAG_NAME, "a")[1].click()
         time.sleep(5)
         
@@ -205,7 +204,7 @@ def save_datas_to_excel_file(logger: log_manager.Logger, datas: list, output_nam
     for item_data in datas:
         data["업소명"].append(item_data[0])
         data["제품명"].append(item_data[1])
-        data["신고번호"].append(item_data[2])
+        data["신고번호"].append(int(item_data[2]))
         data["등록일자"].append(item_data[3])
         data["소비기한"].append(item_data[4])
         data["성상"].append(item_data[5])
@@ -220,9 +219,9 @@ def save_datas_to_excel_file(logger: log_manager.Logger, datas: list, output_nam
         data["기타 원재료 정보"].append(item_data[14])
     
     data_frame = pd.DataFrame(data)
-    data_frame.to_excel(path, index=False, startrow=2)
+    data_frame.to_excel(path, index=False, startrow=2, engine='xlsxwriter')
     
-    workbook = load_workbook(path , data_only=True )
+    workbook = load_workbook(path , data_only=True)
     worksheet = workbook.active
     worksheet["A1"] = "검색기간(시작)"
     worksheet["A2"] = "검색기간(종료)"
@@ -230,7 +229,52 @@ def save_datas_to_excel_file(logger: log_manager.Logger, datas: list, output_nam
     worksheet["B2"] = end_date
     workbook.save(path)
     
-    logger.log_info(f"엑셀 파일 {output_name} 저장 완료!")
+def test():
+    logger = log_manager.Logger(log_manager.LogType.BUILD)
+    os.makedirs("./output", exist_ok=True)
+    
+    webpage_names, webpage_urls = get_urls_from_cvs("./setting.csv")
+    
+    logger.log_info(f"크롤링 대상 웹사이트 {len(webpage_urls)}개를 발견하였습니다.")
+    
+    driver = get_chrome_driver(logger)
+    
+    for i in range(len(webpage_urls)):
+        logger.log_info("기간 설정을 위해 시작과 종료 날짜 혹은 신고 번호를 입력해주세요.")
+        logger.log_info("반드시 YYYY-MM-DD의 양식으로 입력 해주세요.")
+        
+        start_date = input("검색 시작 날짜 : ")
+        end_date = input("검색 종료 혹은 신고번호 : ")
+        
+        file_name = f"{webpage_names[i]}_{start_date}~{end_date}_검색결과"
+        start_date_time = time.strptime(start_date, "%Y-%m-%d")
+        
+        if re.search('[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]', end_date):
+            logger.log_info(f"{start_date}~{end_date}로 기간 설정을 완료하였습니다.")
+        
+            end_date_time = time.strptime(end_date, "%Y-%m-%d")
+            
+            find_items(logger, driver, webpage_urls[i], end_date_time)
+
+        else:
+            logger.log_info(f"신고번호 {end_date} 부터 {start_date} 까지의 상품을 검색합니다.")
+            
+            find_item_by_id(logger=logger, driver=driver, url=webpage_urls[i], item_id=end_date)
+
+        datas = []
+        
+        is_found_startdate = False
+        id = ""
+        while(not is_found_startdate):
+            data, is_found_startdate, id = get_item_info(logger, driver, webpage_urls[i], start_date_time)
+            if not is_found_startdate:
+                datas.append(data)
+                save_datas_to_excel_file(logger, datas, file_name, start_date, end_date)
+                
+        logger.log_info(f"엑셀 파일 저장 및 크롤링 완료!")
+        driver.quit()
+        program_exit = input("프로그램 종료를 위해 엔터키를 눌러주세요.")
+        sys.exit()
 
 if __name__ == '__main__':
     try:
@@ -244,38 +288,38 @@ if __name__ == '__main__':
         driver = get_chrome_driver(logger)
         
         for i in range(len(webpage_urls)):
-            logger.log_info("기간 설정을 위해 시작과 종료 날짜를 입력해주세요.")
+            logger.log_info("기간 설정을 위해 시작과 종료 날짜 혹은 신고 번호를 입력해주세요.")
             logger.log_info("반드시 YYYY-MM-DD의 양식으로 입력 해주세요.")
             
             start_date = input("검색 시작 날짜 : ")
-            end_date = input("검색 종료 날짜 : ")
-            
-            logger.log_info(f"{start_date}~{end_date}로 기간 설정을 완료하였습니다.")
+            end_date = input("검색 종료 혹은 신고번호 : ")
             
             file_name = f"{webpage_names[i]}_{start_date}~{end_date}_검색결과"
             start_date_time = time.strptime(start_date, "%Y-%m-%d")
-            end_date_time = time.strptime(end_date, "%Y-%m-%d")
-        
-            find_items(logger, driver, webpage_urls[i], end_date_time)
+            
+            if re.search('[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]', end_date):
+                logger.log_info(f"{start_date}~{end_date}로 기간 설정을 완료하였습니다.")
+            
+                end_date_time = time.strptime(end_date, "%Y-%m-%d")
+                
+                find_items(logger, driver, webpage_urls[i], end_date_time)
+
+            else:
+                logger.log_info(f"신고번호 {end_date} 부터 {start_date} 까지의 상품을 검색합니다.")
+                
+                find_item_by_id(logger=logger, driver=driver, url=webpage_urls[i], item_id=end_date)
 
             datas = []
             
             is_found_startdate = False
             id = ""
             while(not is_found_startdate):
-                try:
-                    data, is_found_startdate, id = get_item_info(logger, driver, webpage_urls[i], start_date_time)
-                except Exception as e:
-                    logger.log_error(f"다음과 같은 오류가 발생하여 상품을 재검색 합니다. : {e}")
-                    if id == "":
-                        find_items(logger, driver, webpage_urls[i], end_date_time)
-                    else:
-                        find_item_by_id(logger, driver, webpage_urls[i], id)
-                        datas.remove(datas[-1])
-
+                data, is_found_startdate, id = get_item_info(logger, driver, webpage_urls[i], start_date_time)
                 if not is_found_startdate:
                     datas.append(data)
                     save_datas_to_excel_file(logger, datas, file_name, start_date, end_date)
+                    
+            logger.log_info(f"엑셀 파일 저장 및 크롤링 완료!")
             
     except Exception as e:
         logger.log_error(f"다음과 같은 오류로 프로그램을 종료합니다. 프로그램을 재실행 해주세요.: {e}")
